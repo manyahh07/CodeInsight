@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CodeInsight</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0b0d14;
+      --surface: #111420;
+      --surface2: #161928;
+      --border: #1e2438;
+      --border2: #252c42;
+      --text: #cdd6f4;
+      --muted: #6c7aa0;
+      --accent: #7c85f5;
+      --green: #a6e3a1;
+      --yellow: #f9e2af;
+      --red: #f38ba8;
+      --blue: #89b4fa;
+      --teal: #94e2d5;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 10px 24px;
+      min-height: 52px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      background: var(--surface);
+    }
+    .logo { font-size: 16px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+    .logo span { color: var(--accent); }
+    .lang-pills { display: flex; gap: 5px; margin-left: 8px; flex-wrap: wrap; max-width: 680px; }
+    .lang-pill {
+      padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 500;
+      cursor: pointer; border: 1px solid var(--border2); color: var(--muted);
+      background: transparent; transition: all 0.15s;
+    }
+    .lang-pill:hover { border-color: var(--accent); color: var(--accent); }
+    .lang-pill.active { background: var(--accent); border-color: var(--accent); color: #0b0d14; }
+    .btn-analyze {
+      margin-left: auto;
+      background: var(--accent); color: #0b0d14; border: none;
+      padding: 7px 20px; border-radius: 8px; font-size: 13px;
+      font-weight: 600; cursor: pointer; transition: opacity 0.2s;
+    }
+    .btn-analyze:hover { opacity: 0.85; }
+    .btn-analyze:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Layout ── */
+    .main { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── Editor ── */
+    .editor-panel { flex: 1; display: flex; flex-direction: column; border-right: 1px solid var(--border); }
+    .editor-header {
+      padding: 8px 16px; border-bottom: 1px solid var(--border);
+      font-size: 11px; color: var(--muted); display: flex; gap: 12px;
+    }
+    #code {
+      flex: 1; background: transparent; color: var(--text);
+      font-family: var(--font-mono); font-size: 13px; line-height: 1.65;
+      padding: 16px 20px; border: none; outline: none; resize: none;
+      tab-size: 4;
+    }
+    #code::placeholder { color: #2d3454; }
+
+    /* ── Results panel ── */
+    .results-panel { width: 400px; flex-shrink: 0; display: flex; flex-direction: column; overflow-y: auto; }
+
+    /* score cards row */
+    .score-row {
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+      border-bottom: 1px solid var(--border);
+    }
+    .score-card {
+      padding: 16px 12px; text-align: center;
+      border-right: 1px solid var(--border);
+    }
+    .score-card:last-child { border-right: none; }
+    .score-card .label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+    .score-card .number { font-size: 28px; font-weight: 700; line-height: 1; }
+    .score-card .sublabel { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+    /* metrics chips */
+    .metrics-row { display: flex; gap: 6px; padding: 10px 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .chip { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; font-size: 11px; color: var(--muted); }
+    .chip strong { color: var(--text); display: block; font-size: 15px; font-weight: 600; }
+
+    /* naturalness / AI reason tags */
+    .signal-block { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+    .signal-block .signal-title { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+    .signal-tag {
+      display: inline-flex; align-items: flex-start; gap: 6px;
+      font-size: 11px; line-height: 1.4; color: var(--text);
+      background: var(--surface2); border-radius: 6px;
+      padding: 5px 8px; margin: 3px 3px 0 0;
+    }
+    .signal-tag .dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 3px; flex-shrink: 0; }
+
+    /* issues */
+    .section-header {
+      padding: 8px 14px; font-size: 10px; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.06em;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface); position: sticky; top: 0; z-index: 2;
+    }
+    .issue {
+      padding: 10px 14px; border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+    .issue:hover { background: var(--surface2); }
+    .issue-top { display: flex; align-items: flex-start; gap: 8px; }
+    .sev-bar { width: 3px; border-radius: 2px; min-height: 14px; flex-shrink: 0; margin-top: 2px; }
+    .issue-msg { font-size: 12px; line-height: 1.45; color: var(--text); flex: 1; }
+    .cat-tag {
+      font-size: 9px; padding: 1px 5px; border-radius: 3px;
+      background: var(--surface2); color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.04em;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .issue-line { font-size: 10px; color: var(--muted); margin: 3px 0 0 11px; }
+    .suggestion { font-size: 11px; color: var(--blue); margin: 5px 0 0 11px; line-height: 1.4; }
+    .fix-hint {
+      margin: 6px 0 0 11px;
+      background: #0d1117; border: 1px solid var(--border2); border-radius: 6px;
+      padding: 7px 10px; font-family: var(--font-mono); font-size: 10px;
+      color: #8ec07c; line-height: 1.6; white-space: pre-wrap; word-break: break-all;
+    }
+    .fix-hint-toggle {
+      font-size: 10px; color: var(--muted); cursor: pointer;
+      margin: 4px 0 0 11px; display: inline-flex; align-items: center; gap: 4px;
+      background: none; border: none; padding: 0;
+    }
+    .fix-hint-toggle:hover { color: var(--accent); }
+
+    .empty-state { padding: 60px 24px; text-align: center; color: var(--muted); }
+    .empty-state .icon { font-size: 28px; margin-bottom: 10px; }
+    .empty-state p { font-size: 13px; line-height: 1.6; }
+    .loading-msg { padding: 40px; text-align: center; color: var(--muted); font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Code<span>Insight</span></div>
+
+  <div class="lang-pills">
+    <button class="lang-pill active" data-lang="python">Python</button>
+    <button class="lang-pill" data-lang="javascript">JavaScript</button>
+    <button class="lang-pill" data-lang="typescript">TypeScript</button>
+    <button class="lang-pill" data-lang="java">Java</button>
+    <button class="lang-pill" data-lang="cpp">C++</button>
+    <button class="lang-pill" data-lang="c">C</button>
+    <button class="lang-pill" data-lang="csharp">C#</button>
+    <button class="lang-pill" data-lang="kotlin">Kotlin</button>
+    <button class="lang-pill" data-lang="ruby">Ruby</button>
+    <button class="lang-pill" data-lang="html">HTML/CSS</button>
+    <button class="lang-pill" data-lang="r">R</button>
+    <button class="lang-pill" data-lang="sql">SQL</button>
+    <button class="lang-pill" data-lang="scala">Scala</button>
+    <button class="lang-pill" data-lang="dart">Dart</button>
+    <button class="lang-pill" data-lang="php">PHP</button>
+    <button class="lang-pill" data-lang="rust">Rust</button>
+    <button class="lang-pill" data-lang="swift">Swift</button>
+    <button class="lang-pill" data-lang="go">Go</button>
+  </div>
+
+  <button class="btn-analyze" id="analyzeBtn" onclick="runAnalysis()">Analyze</button>
+</header>
+
+<div class="main">
+  <div class="editor-panel">
+    <div class="editor-header">
+      <span id="lineCount">0 lines</span>
+      <span id="langLabel">Python</span>
+    </div>
+    <textarea id="code" spellcheck="false" placeholder="Paste your code here..."></textarea>
+  </div>
+
+  <div class="results-panel" id="results">
+    <div class="empty-state">
+      <div class="icon">&#9998;</div>
+      <p>Select a language, paste your code,<br>and click Analyze.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Language pills ──
+  let selectedLang = 'python';
+  document.querySelectorAll('.lang-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.lang-pill').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedLang = btn.dataset.lang;
+      document.getElementById('langLabel').textContent = btn.textContent;
+    });
+  });
+
+  // ── Line counter ──
+  document.getElementById('code').addEventListener('input', () => {
+    const n = document.getElementById('code').value.split('\n').length;
+    document.getElementById('lineCount').textContent = `${n} line${n !== 1 ? 's' : ''}`;
+  });
+
+  // ── Color helpers ──
+  function healthColor(s) {
+    if (s >= 80) return '#a6e3a1';
+    if (s >= 55) return '#f9e2af';
+    return '#f38ba8';
+  }
+  function healthLabel(s) {
+    if (s >= 90) return 'Excellent';
+    if (s >= 75) return 'Good';
+    if (s >= 55) return 'Fair';
+    return 'Poor';
+  }
+  function natColor(s) {
+    if (s >= 75) return '#a6e3a1';
+    if (s >= 50) return '#f9e2af';
+    return '#f38ba8';
+  }
+  function aiColor(s) {
+    if (s <= 20) return '#a6e3a1';
+    if (s <= 50) return '#f9e2af';
+    return '#f38ba8';
+  }
+  function aiLabel(s) {
+    if (s <= 20) return 'Unlikely';
+    if (s <= 50) return 'Possible';
+    return 'Likely';
+  }
+  function sevColor(sev) {
+    return { error: '#f38ba8', warning: '#f9e2af', info: '#89b4fa' }[sev] || '#6c7aa0';
+  }
+
+  // ── Main analysis ──
+  async function runAnalysis() {
+    const code = document.getElementById('code').value.trim();
+    if (!code) return;
+
+    const btn = document.getElementById('analyzeBtn');
+    btn.disabled = true;
+    document.getElementById('results').innerHTML = '<div class="loading-msg">Analyzing...</div>';
+
+    try {
+      const res = await fetch('/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, language: selectedLang })
+      });
+      const data = await res.json();
+      renderResults(data);
+    } catch (e) {
+      document.getElementById('results').innerHTML = '<div class="loading-msg">Error — is the server running?</div>';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ── Render ──
+  function renderResults(data) {
+    const { score, naturalness_score: nat, ai_likelihood_score: ai,
+            naturalness_reasons: natR, ai_reasons: aiR,
+            issues, metrics, language } = data;
+
+    const m = metrics || {};
+    const issueList = issues || [];
+    const errors = issueList.filter(i => i.severity === 'error').length;
+    const warnings = issueList.filter(i => i.severity === 'warning').length;
+
+    // ── Score cards ──
+    let html = `
+      <div class="score-row">
+        <div class="score-card">
+          <div class="label">Health score</div>
+          <div class="number" style="color:${healthColor(score)}">${score}</div>
+          <div class="sublabel">${healthLabel(score)}</div>
+        </div>
+        <div class="score-card">
+          <div class="label">Naturalness</div>
+          <div class="number" style="color:${natColor(nat)}">${nat}</div>
+          <div class="sublabel">How human it reads</div>
+        </div>
+        <div class="score-card">
+          <div class="label">AI likelihood</div>
+          <div class="number" style="color:${aiColor(ai)}">${ai}</div>
+          <div class="sublabel">${aiLabel(ai)}</div>
+        </div>
+      </div>
+    `;
+
+    // ── Metrics chips ──
+    html += `<div class="metrics-row">`;
+    if (m.total_lines)        html += chip(m.total_lines, 'lines');
+    if (m.function_count != null) html += chip(m.function_count, 'functions');
+    if (m.avg_complexity != null) html += chip(m.avg_complexity, 'avg complexity');
+    if (m.max_nesting_depth != null) html += chip(m.max_nesting_depth, 'max depth');
+    if (m.docstring_coverage != null) html += chip(m.docstring_coverage + '%', 'documented');
+    if (m.comment_ratio != null) html += chip(m.comment_ratio + '%', 'comments');
+    html += `</div>`;
+
+    // ── Naturalness signals ──
+    if (natR && natR.length > 0) {
+      html += `<div class="signal-block">
+        <div class="signal-title">Naturalness signals</div>`;
+      natR.forEach(r => {
+        const isGood = r.startsWith('Good');
+        html += `<span class="signal-tag">
+          <span class="dot" style="background:${isGood ? '#a6e3a1' : '#f9e2af'}"></span>
+          ${r}
+        </span>`;
+      });
+      html += `</div>`;
+    }
+
+    // ── AI signals ──
+    if (aiR && aiR.length > 0) {
+      html += `<div class="signal-block">
+        <div class="signal-title">AI / plagiarism signals</div>`;
+      aiR.forEach(r => {
+        html += `<span class="signal-tag">
+          <span class="dot" style="background:#f38ba8"></span>
+          ${r}
+        </span>`;
+      });
+      html += `</div>`;
+    }
+
+    // ── Issues ──
+    const order = { error: 0, warning: 1, info: 2 };
+    const sorted = [...issueList].sort((a, b) => (order[a.severity] || 3) - (order[b.severity] || 3));
+
+    html += `<div class="section-header">${issueList.length} issue${issueList.length !== 1 ? 's' : ''} &nbsp;·&nbsp; ${errors} error${errors!==1?'s':''}, ${warnings} warning${warnings!==1?'s':''}</div>`;
+
+    if (sorted.length === 0) {
+      html += `<div style="padding:32px 20px;text-align:center;color:var(--muted);font-size:13px">
+        No issues found — code looks clean.
+      </div>`;
+    } else {
+      sorted.forEach((issue, idx) => {
+        const color = sevColor(issue.severity);
+        const hasHint = issue.fix_hint && issue.fix_hint.trim();
+        html += `
+          <div class="issue">
+            <div class="issue-top">
+              <div class="sev-bar" style="background:${color};align-self:stretch"></div>
+              <div class="issue-msg">${escHtml(issue.message)}</div>
+              <span class="cat-tag">${issue.category}</span>
+            </div>
+            ${issue.line ? `<div class="issue-line">Line ${issue.line}</div>` : ''}
+            ${issue.suggestion ? `<div class="suggestion">&#128161; ${escHtml(issue.suggestion)}</div>` : ''}
+            ${hasHint ? `
+              <button class="fix-hint-toggle" onclick="toggleHint(${idx})">
+                <span id="hint-arrow-${idx}">&#9654;</span> Show fix example
+              </button>
+              <div class="fix-hint" id="hint-${idx}" style="display:none">${escHtml(issue.fix_hint)}</div>
+            ` : ''}
+          </div>`;
+      });
+    }
+
+    document.getElementById('results').innerHTML = html;
+  }
+
+  function chip(val, label) {
+    return `<div class="chip"><strong>${val}</strong>${label}</div>`;
+  }
+
+  function escHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function toggleHint(idx) {
+    const el = document.getElementById(`hint-${idx}`);
+    const arrow = document.getElementById(`hint-arrow-${idx}`);
+    const visible = el.style.display !== 'none';
+    el.style.display = visible ? 'none' : 'block';
+    arrow.innerHTML = visible ? '&#9654;' : '&#9660;';
+  }
+
+  // ── Ctrl+Enter to analyze ──
+  document.getElementById('code').addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runAnalysis();
+  });
+</script>
+</body>
+</html>
