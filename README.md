@@ -3,7 +3,6 @@ CodeInsight — Multi-Language Code Analyzer
 A static analysis tool that scores code quality, detects smells, measures naturalness, and estimates AI-generated likelihood — across 18 programming languages.
 Built with Python + Flask. No external analysis libraries — pure AST parsing for Python, pattern-based heuristics for all other languages.
 
-![CodeInsight UI](Screenshot 2026-04-22 024511.png)
 
 #Features
 Code Quality Scoring (0–100)
