@@ -16,7 +16,7 @@ Built with **Python + Flask**, using **AST parsing for Python** and **pattern-ba
 
 ---
 
-## ✨ Features
+## Features
 
 ### Code Quality Scoring (0–100)
 Every submission receives a weighted health score based on issue severity:
