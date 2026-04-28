@@ -1,207 +1,234 @@
-CodeInsight — Multi-Language Code Analyzer
+# CodeInsight — Multi-Language Code Analyzer
 
-A static analysis tool that scores code quality, detects smells, measures naturalness, and estimates AI-generated likelihood — across 18 programming languages.
-Built with Python + Flask. No external analysis libraries — pure AST parsing for Python, pattern-based heuristics for all other languages.
+A static analysis tool that scores code quality, detects code smells, measures naturalness, and estimates AI-generated likelihood across **18 programming languages**.
 
+Built with **Python + Flask**, using **AST parsing for Python** and **pattern-based heuristics** for all other languages.
 
-#Features
-Code Quality Scoring (0–100)
-Every submission gets a weighted health score based on issue severity:
-- Errors (−15 pts): security vulnerabilities, unsafe patterns, syntax issues
-- Warnings (−5 pts): code smells, missing documentation, complexity spikes
-- Info (−1 pt): style inconsistencies, minor suggestions
+---
 
+## Screenshots
 
+### Homepage
+![Homepage](Homepage.png)
 
-#Naturalness Score (0–100)
-Measures how "human" the code reads by analyzing:
-- Ratio of descriptive vs generic variable names (`userCount` vs `data`, `result`, `handler`)
-- Naming convention consistency (flags mixed snake_case + camelCase)
-- Logical use of blank lines and code structure
-- Density of single-letter variables outside loop contexts
+### Analysis Result
+![Result](Result.png)
 
+---
 
+## ✨ Features
 
-#AI Likelihood Score (0–100)
-Detects patterns statistically common in AI-generated or copy-pasted code:
-- High concentration of placeholder names (`data`, `obj`, `processData`, `handleResult`)
-- Boilerplate-style comments (`# Step 1:`, `# This function...`, `# Returns...`)
-- Suspiciously uniform line lengths across the file
-- Every function having exactly one return statement (perfect symmetry)
-- Mixed naming conventions — common when merging AI output with existing code
+### Code Quality Scoring (0–100)
+Every submission receives a weighted health score based on issue severity:
 
+- Errors (−15 pts) → security vulnerabilities, unsafe patterns, syntax issues  
+- Warnings (−5 pts) → code smells, missing documentation, complexity spikes  
+- Info (−1 pt) → style inconsistencies and minor suggestions  
 
+---
 
-#Per-Issue Fix Hints
-Every issue includes:
-- A clear explanation of *why* it's a problem
-- A concrete suggestion of *what* to do
-- A collapsible code example showing the corrected version
+## Naturalness Score (0–100)
 
+Measures how human-written code feels by analyzing:
 
+- Descriptive vs generic variable names  
+- Naming convention consistency  
+- Blank line structure and code organization  
+- Single-letter variable overuse outside loops  
 
-#Metrics Panel
-- Total lines / code lines / blank lines
-- Function count
-- Average cyclomatic complexity (Python)
-- Maximum nesting depth
-- Docstring / comment coverage percentage
+---
 
+## AI Likelihood Score (0–100)
 
+Flags patterns often associated with AI-generated or copy-pasted code:
 
-#Supported Languages
+- Placeholder-heavy naming (`data`, `result`, `handler`)
+- Boilerplate-style comments  
+- Suspiciously uniform line lengths  
+- Perfectly symmetrical function structures  
+- Mixed naming conventions from merged sources  
 
-| Language | Analyzer Type | Key Checks |
+---
 
-| Python | Full AST (stdlib `ast`) | Cyclomatic complexity, nesting depth, magic numbers, duplicate blocks, docstring coverage |
-| JavaScript | Pattern-based | `var` vs `const`/`let`, loose equality `==`, callback nesting, console.log in production |
-| TypeScript | Pattern-based | Same as JS + type-specific patterns |
-| Java | Pattern-based | Raw generic types, `System.out.println`, missing Javadoc, public field exposure |
-| C++ | Pattern-based | `using namespace std`, raw pointers vs smart pointers, missing include guards |
-| C | Pattern-based | `gets()` unsafe, `malloc` without NULL check, `strcpy`/`strcat` buffer risks |
-| C# | Pattern-based | Exception swallowing, `Console.WriteLine` in production, missing XML docs |
-| Kotlin | Pattern-based | `!!` non-null assertions, `println` usage, mutable vs immutable collections |
-| Ruby | Pattern-based | `eval()` security risk, `puts` in production, method length |
-| Go | Pattern-based | Ignored errors (`_`), `panic()` usage, missing GoDoc on exported functions |
-| Rust | Pattern-based | `.unwrap()` panic risk, `.clone()` overuse, missing doc comments, `panic!` macro |
-| Swift | Pattern-based | Force unwrap `!`, retain cycles in delegates, missing access control |
-| PHP | Pattern-based | SQL injection via `$_GET`/`$_POST`, XSS via unescaped echo, deprecated `mysql_*` |
-| Dart | Pattern-based | `dynamic` type overuse, `print()` vs logger, `late` keyword overuse |
-| Scala | Pattern-based | `null` vs `Option`, `var` vs `val`, explicit `return` (un-idiomatic) |
-| SQL | Pattern-based | `SELECT *`, `UPDATE`/`DELETE` without `WHERE`, correlated subqueries, leading wildcard `LIKE` |
-| R | Pattern-based | `=` vs `<-` assignment, `T`/`F` shorthand, `setwd()` portability, vector growing in loops |
-| HTML/CSS | Pattern-based | Missing `alt` attributes, inline styles, deprecated tags, `!important` overuse |
+## Per-Issue Fix Hints
 
+Every detected issue includes:
 
+- Problem explanation  
+- Suggested fix  
+- Collapsible corrected code example  
 
-#Project Structure
-CodeInsight/
-├── app.py              # Flask app — GET / and POST /analyze
-├── analyzer.py         # All analysis logic — language dispatchers + shared helpers
-├── templates/
-│   └── index.html      # Single-page frontend (vanilla JS, no framework)
-└── requirements.txt
+---
 
+## Metrics Panel
 
+Tracks:
 
-#How it works
-POST /analyze  { code: "...", language: "python" }
-│
-▼
-analyzer.py → language dispatcher
-│
-├── Language-specific checks  (issues + raw metrics)
-├── Secret/credential scan    (all languages)
-└── Naturalness + AI scoring  (all languages)
-│
-▼
-AnalysisResult dataclass → JSON response
-│
-▼
-Frontend renders: score ring, metrics chips,
-naturalness signals, AI signals,
-issues sorted by severity with fix hints
+- Total / code / blank lines  
+- Function count  
+- Cyclomatic complexity  
+- Maximum nesting depth  
+- Docstring/comment coverage  
 
+---
 
+## Supported Languages
 
-#Getting Started
-Requirements: Python 3.10+
+- Python  
+- JavaScript / TypeScript  
+- Java  
+- C / C++ / C#  
+- Go  
+- Rust  
+- Swift  
+- Kotlin  
+- Ruby  
+- PHP  
+- Dart  
+- Scala  
+- SQL  
+- R  
+- HTML/CSS  
+
+Includes checks for:
+
+- Security flaws  
+- Complexity smells  
+- Documentation gaps  
+- Style violations  
+- Unsafe memory / pointer usage  
+- Language-specific anti-patterns  
+
+---
+
+## Project Structure
 
 ```bash
-# 1. Clone the repo
+CodeInsight/
+├── app.py
+├── analyzer.py
+├── templates/
+│   └── index.html
+└── requirements.txt
+```
+
+---
+
+## ⚙ How It Works
+
+```text
+Code Input
+   ↓
+Language Dispatcher
+   ↓
+Static Analysis + Secret Scan + AI Heuristics
+   ↓
+AnalysisResult JSON
+   ↓
+Frontend Score + Metrics + Issue Rendering
+```
+
+---
+
+## Getting Started
+
+```bash
 git clone https://github.com/manyahh07/CodeInsight.git
 cd CodeInsight
 
-# 2. Create and activate a virtual environment
 python -m venv venv
-source venv/bin/activate        # Linux/Mac
-# venv\Scripts\activate         # Windows
 
-# 3. Install dependencies
+# Linux / Mac
+source venv/bin/activate
+
+# Windows
+venv\Scripts\activate
+
 pip install flask
 
-# 4. Run
 python app.py
 ```
 
-Open `http://127.0.0.1:5000` in your browser.
+Open:
 
-Keyboard shortcut: `Ctrl+Enter` inside the editor triggers analysis.
+```bash
+http://127.0.0.1:5000
+```
 
+Shortcut:
 
+```bash
+Ctrl + Enter
+```
 
-#API
+runs analysis directly from the editor.
 
-The analyzer is accessible as a JSON API — callable from any frontend, CLI script, or CI pipeline.
+---
 
-Request
+## 🔌 API Example
+
+### Request
+
 ```http
 POST /analyze
 Content-Type: application/json
+```
 
+```json
 {
-  "code": "def foo():\n    x = 1\n    return x",
+  "code": "def foo(): return 1",
   "language": "python"
 }
 ```
 
-Response
+---
+
+### Response
+
 ```json
 {
-  "score": 82,
-  "language": "python",
-  "naturalness_score": 74,
-  "ai_likelihood_score": 30,
-  "naturalness_reasons": [
-    "Good use of descriptive, meaningful names."
-  ],
-  "ai_reasons": [
-    "8 generic placeholder names detected."
-  ],
-  "metrics": {
-    "total_lines": 45,
-    "function_count": 4,
-    "avg_complexity": 2.8,
-    "max_nesting_depth": 3,
-    "docstring_coverage": 50,
-    "comment_ratio": 12
-  },
-  "issues": [
-    {
-      "severity": "warning",
-      "category": "complexity",
-      "message": "'process_data' has moderate complexity (7).",
-      "line": 12,
-      "suggestion": "Reduce nested conditionals using early returns.",
-      "fix_hint": "if not valid: return\n# rest of logic"
-    }
-  ]
+  "score":82,
+  "naturalness_score":74,
+  "ai_likelihood_score":30
 }
 ```
 
+---
 
+## Technical Notes
 
-#Technical Notes
-Python uses the standard library `ast` module for genuine AST-level analysis — it parses code into a syntax tree and walks nodes to compute cyclomatic complexity, detect magic numbers, identify single-letter variables outside loop targets, measure nesting depth, and check docstring coverage per function and class.
-All other languages use regex and line-level pattern matching. This catches the most impactful, high-signal issues without requiring language runtimes or third-party parsers. The natural upgrade path is integrating [tree-sitter](https://tree-sitter.github.io/tree-sitter/) for true multi-language AST parsing.
-The naturalness and AI likelihood scores are heuristic — they're useful signals, not definitive verdicts. They look at identifier vocabulary, comment style, structural symmetry, and naming consistency across the file.
+- Python uses standard library `ast` for true syntax-tree analysis.
+- Other languages use regex + heuristic pattern detection.
+- Designed as lightweight static analysis without external parsers.
+- Future upgrade path: Tree-sitter multi-language AST integration.
 
+---
 
+## Roadmap
 
-#Roadmap
-- [ ] `tree-sitter` integration for true AST analysis in all languages
-- [ ] Git integration — churn rate, hotspot detection (complexity × churn)
-- [ ] Trend analysis — compare score across multiple runs
-- [ ] CLI mode: `python analyze.py myfile.py --format json`
-- [ ] CI/CD mode: exit code 1 when score drops below a configurable threshold
-- [ ] VS Code extension
+- [ ] Tree-sitter integration  
+- [ ] Git churn + hotspot analysis  
+- [ ] Trend comparison across runs  
+- [ ] CLI mode  
+- [ ] CI/CD quality gates  
+- [ ] VS Code extension  
 
+---
 
+## Contributing
 
-#Contributing
-Pull requests are welcome. To add a new language, create a function `_analyze_<language>(code: str, lines: list[str]) -> tuple[list[Issue], dict]` in `analyzer.py` and register it in the `LANGUAGE_ANALYZERS` dict at the bottom.
+Pull requests welcome.
 
+Add a new language by implementing:
 
+```python
+_analyze_<language>(code, lines)
+```
 
-#License
+and registering it in the analyzer dispatcher.
+
+---
+
+## 📜 License
+
 MIT
