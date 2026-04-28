@@ -114,7 +114,7 @@ CodeInsight/
 
 ---
 
-## ⚙ How It Works
+## How It Works
 
 ```text
 Code Input
@@ -165,7 +165,7 @@ runs analysis directly from the editor.
 
 ---
 
-## 🔌 API Example
+## API Example
 
 ### Request
 
@@ -229,6 +229,6 @@ and registering it in the analyzer dispatcher.
 
 ---
 
-## 📜 License
+## License
 
 MIT
